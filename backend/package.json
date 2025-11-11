@@ -1,12 +1,16 @@
 {
-  "name": "backend",
+  "name": "shinka-backend",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
-  "author": "",
+  "author": "Shaan Hossain",
   "type": "module",
   "main": "dist/server.ts",
   "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -21,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
     "pino": "^10.1.0",
+    "pino-http": "^11.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
