@@ -25,4 +25,26 @@ app.use(
 )
 
 
+app.use(helmet());
+app.use(compression());
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
+
+const corsOptions: cors.CorsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (env.CORS_ORIGIN.includes(origin)) return callback(null, true);
+
+    return callback(new Error("CORS origin not allowed"), false);
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+app.use("/api/v1", healthRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 export default app;
