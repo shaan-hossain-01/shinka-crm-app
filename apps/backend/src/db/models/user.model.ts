@@ -1,15 +1,18 @@
-import { eq } from 'drizzle-orm';
-import db from '../client';
-import { users, type User, type NewUser } from '../schema/users';
-import { encryptPassword, makeSalt, authenticate } from '../../auth/hash';
-import { upsertUserProfile, findUserProfileByUserId } from './userProfile.model';
+import { eq } from "drizzle-orm";
+import db from "../client";
+import { users, type User, type NewUser } from "../schema/users";
+import { encryptPassword, makeSalt, authenticate } from "../../auth/hash";
+import {
+  upsertUserProfile,
+  findUserProfileByUserId,
+} from "./userProfile.model";
 
 export class UserValidationError extends Error {
   public errors: Record<string, string>;
 
   constructor(errors: Record<string, string>) {
-    super('User validation failed');
-    this.name = 'UserValidationError';
+    super("User validation failed");
+    this.name = "UserValidationError";
     this.errors = errors;
   }
 }
@@ -19,21 +22,25 @@ export class UserValidationError extends Error {
  * - Password is required for new users
  * - Password must be at least 6 characters
  */
-function validatePassword(password: string | undefined, isNew: boolean): Record<string, string> {
+function validatePassword(
+  password: string | undefined,
+  isNew: boolean,
+): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (isNew && !password) {
-    errors.password = 'Password is required';
+    errors.password = "Password is required";
   }
 
   if (password && password.length < 6) {
-    errors.password = 'Password must be at least 6 characters.';
+    errors.password = "Password must be at least 6 characters.";
   }
 
   return errors;
 }
 
-export interface UserWithPassword extends Omit<NewUser, 'hashed_password' | 'salt'> {
+export interface UserWithPassword
+  extends Omit<NewUser, "hashed_password" | "salt"> {
   password: string;
   about?: string;
   photo?: string | null;
@@ -61,14 +68,17 @@ export async function createUser(userData: UserWithPassword): Promise<User> {
   const salt = makeSalt();
   const hashedPassword = encryptPassword(userData.password, salt);
 
-  const [newUser] = await db.insert(users).values({
-    name: userData.name,
-    email: userData.email,
-    hashed_password: hashedPassword,
-    salt: salt,
-    created: new Date(),
-    updated: new Date(),
-  }).returning();
+  const [newUser] = await db
+    .insert(users)
+    .values({
+      name: userData.name,
+      email: userData.email,
+      hashed_password: hashedPassword,
+      salt: salt,
+      created: new Date(),
+      updated: new Date(),
+    })
+    .returning();
 
   return newUser;
 }
@@ -84,8 +94,14 @@ export async function findUserById(id: string): Promise<User | undefined> {
 /**
  * Find user by email
  */
-export async function findUserByEmail(email: string): Promise<User | undefined> {
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+export async function findUserByEmail(
+  email: string,
+): Promise<User | undefined> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
   return user;
 }
 
@@ -96,7 +112,7 @@ export async function findUserByEmail(email: string): Promise<User | undefined> 
  */
 export async function updateUser(
   id: string,
-  updates: Partial<UserWithPassword>
+  updates: Partial<UserWithPassword>,
 ): Promise<User | undefined> {
   // Validate password if it's being updated (isNew = false)
   if (updates.password) {
@@ -116,7 +132,10 @@ export async function updateUser(
   // Handle password update with new salt and hash
   if (updates.password) {
     updateData.salt = makeSalt();
-    updateData.hashed_password = encryptPassword(updates.password, updateData.salt);
+    updateData.hashed_password = encryptPassword(
+      updates.password,
+      updateData.salt,
+    );
   }
 
   const [updatedUser] = await db
@@ -126,7 +145,11 @@ export async function updateUser(
     .returning();
 
   // Update or create user profile if about or photo data is provided
-  if (updates.about !== undefined || updates.photo !== undefined || updates.photoContentType !== undefined) {
+  if (
+    updates.about !== undefined ||
+    updates.photo !== undefined ||
+    updates.photoContentType !== undefined
+  ) {
     await upsertUserProfile(id, {
       about: updates.about,
       photo: updates.photo,
@@ -150,7 +173,7 @@ export async function deleteUser(id: string): Promise<boolean> {
  * Matches the user-provided password with the stored hashed_password
  */
 export async function authenticateUser(
-  credentials: UserCredentials
+  credentials: UserCredentials,
 ): Promise<User | null> {
   const user = await findUserByEmail(credentials.email);
 
@@ -161,7 +184,7 @@ export async function authenticateUser(
   const isValid = authenticate(
     credentials.password,
     user.hashed_password,
-    user.salt
+    user.salt,
   );
 
   return isValid ? user : null;

@@ -109,7 +109,8 @@ export default function ProfilePage() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <CalendarDays className="h-4 w-4" />
             <span>
-              Joined {formatDistanceToNow(new Date(user.created), { addSuffix: true })}
+              Joined{" "}
+              {formatDistanceToNow(new Date(user.created), { addSuffix: true })}
             </span>
           </div>
         </CardContent>

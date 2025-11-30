@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Upload } from "lucide-react";
 
 export default function EditProfilePage() {
@@ -38,7 +44,7 @@ export default function EditProfilePage() {
             about: response.data.about || "",
             photo: null,
           });
-          
+
           // Set existing photo preview
           const photoUrl = `/api/users/${user._id}/photo`;
           setPhotoPreview(photoUrl);
@@ -51,23 +57,29 @@ export default function EditProfilePage() {
     fetchUser();
   }, [user]);
 
-  const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (name === "photo" && event.target instanceof HTMLInputElement && event.target.files) {
-      const file = event.target.files[0];
-      setValues({ ...values, photo: file });
-      
-      // Create preview URL
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPhotoPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+  const handleChange =
+    (name: string) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (
+        name === "photo" &&
+        event.target instanceof HTMLInputElement &&
+        event.target.files
+      ) {
+        const file = event.target.files[0];
+        setValues({ ...values, photo: file });
+
+        // Create preview URL
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPhotoPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        }
+      } else {
+        setValues({ ...values, [name]: event.target.value });
       }
-    } else {
-      setValues({ ...values, [name]: event.target.value });
-    }
-  };
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,13 +95,18 @@ export default function EditProfilePage() {
       if (values.photo) formData.append("photo", values.photo);
 
       const token = localStorage.getItem("jwt");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/users/${user?._id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+        }/api/users/${user?._id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       const data = await response.json();
 
@@ -128,7 +145,10 @@ export default function EditProfilePage() {
 
             <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={photoPreview || undefined} alt={values.name} />
+                <AvatarImage
+                  src={photoPreview || undefined}
+                  alt={values.name}
+                />
                 <AvatarFallback className="text-2xl">
                   {values.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -191,7 +211,9 @@ export default function EditProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">New Password (leave blank to keep current)</Label>
+              <Label htmlFor="password">
+                New Password (leave blank to keep current)
+              </Label>
               <Input
                 id="password"
                 type="password"

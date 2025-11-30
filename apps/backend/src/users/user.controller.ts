@@ -1,14 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
-import extend from 'lodash/extend';
+import { Request, Response, NextFunction } from "express";
+import extend from "lodash/extend";
 import {
   createUser,
   findUserById,
   updateUser,
   deleteUser,
   listUsers,
-} from '../db/models/user.model';
-import { findUserProfileByUserId } from '../db/models/userProfile.model';
-import errorHandler from '../utils/dbErrorHandler';
+} from "../db/models/user.model";
+import { findUserProfileByUserId } from "../db/models/userProfile.model";
+import errorHandler from "../utils/dbErrorHandler";
 
 interface UserRequest extends Request {
   profile?: any;
