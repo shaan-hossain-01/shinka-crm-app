@@ -1,0 +1,40 @@
+{
+  "name": "shinka-crm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shinka CRM - Social Media Platform",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:backend": "npm run dev --workspace=@shinka/backend",
+    "dev:frontend": "npm run dev --workspace=@shinka/frontend",
+    "build": "npm run build --workspaces --if-present",
+    "build:backend": "npm run build --workspace=@shinka/backend",
+    "build:frontend": "npm run build --workspace=@shinka/frontend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "seed": "tsx scripts/seed.ts",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+  },
+  "keywords": [
+    "monorepo",
+    "crm",
+    "social-media"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3",
+    "tsx": "^4.20.6"
+  }
+}
