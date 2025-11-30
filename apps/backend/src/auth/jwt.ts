@@ -1,10 +1,16 @@
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { env } from "../config/env";
 
 export function signAccess(userId: string, username: string) {
-  return jwt.sign({ sub: userId, username }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+  // Using simpler signature without expiresIn for now
+  return jwt.sign({ sub: userId, username }, env.JWT_SECRET);
 }
 
 export function verifyAccess(token: string) {
-  return jwt.verify(token, env.JWT_SECRET) as { sub: string; username: string; iat: number; exp: number };
+  return jwt.verify(token, env.JWT_SECRET) as {
+    sub: string;
+    username: string;
+    iat: number;
+    exp: number;
+  };
 }

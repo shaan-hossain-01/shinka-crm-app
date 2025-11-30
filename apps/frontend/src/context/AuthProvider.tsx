@@ -1,12 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { authApi } from "@/lib/auth";
 import type { User } from "@shinka/shared";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  jwt: { token: string; user: User } | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -17,6 +24,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const getJwt = () => {
+    const token = localStorage.getItem("token");
+    if (token && user) {
+      return { token, user };
+    }
+    return null;
+  };
 
   useEffect(() => {
     loadUser();
@@ -48,7 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, jwt: getJwt(), signIn, signUp, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

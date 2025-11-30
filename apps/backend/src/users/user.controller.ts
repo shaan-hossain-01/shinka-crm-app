@@ -8,10 +8,20 @@ import {
   listUsers,
 } from "../db/models/user.model";
 import { findUserProfileByUserId } from "../db/models/userProfile.model";
+import {
+  addFollow,
+  removeFollow,
+  getFollowCounts,
+  isFollowing,
+  getFollowing,
+} from "../db/models/follow.model";
 import errorHandler from "../utils/dbErrorHandler";
 
 interface UserRequest extends Request {
   profile?: any;
+  auth?: {
+    _id: string;
+  };
 }
 
 export const create = async (req: Request, res: Response) => {
@@ -69,11 +79,23 @@ export const userByID = async (
     // Fetch user profile
     const profile = await findUserProfileByUserId(id);
 
+    // Get follow counts
+    const { followers, following } = await getFollowCounts(id);
+
+    // Check if current user follows this user
+    let isFollowingUser = false;
+    if (req.auth?._id && req.auth._id !== id) {
+      isFollowingUser = await isFollowing(req.auth._id, id);
+    }
+
     req.profile = {
       ...user,
       about: profile?.about,
       photo: profile?.photo,
       photoContentType: profile?.photo_content_type,
+      followers,
+      following,
+      isFollowing: isFollowingUser,
     };
     next();
   } catch (err) {
@@ -162,6 +184,76 @@ export const photo = async (req: UserRequest, res: Response) => {
   });
 };
 
+export const addFollowing = async (req: UserRequest, res: Response) => {
+  try {
+    if (!req.auth?._id || !req.body.userId) {
+      return res.status(400).json({
+        error: "Missing user information",
+      });
+    }
+
+    await addFollow(req.auth._id, req.body.userId);
+
+    return res.status(200).json({
+      message: "Successfully followed user",
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
+export const removeFollowing = async (req: UserRequest, res: Response) => {
+  try {
+    if (!req.auth?._id || !req.body.userId) {
+      return res.status(400).json({
+        error: "Missing user information",
+      });
+    }
+
+    await removeFollow(req.auth._id, req.body.userId);
+
+    return res.status(200).json({
+      message: "Successfully unfollowed user",
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
+export const findPeople = async (req: UserRequest, res: Response) => {
+  try {
+    if (!req.profile?.id) {
+      return res.status(400).json({
+        error: "User not found",
+      });
+    }
+
+    // Get list of users the current user is following
+    const following = await getFollowing(req.profile.id);
+    // Add current user's ID to exclude them from results
+    following.push(req.profile.id);
+
+    // Find users not in the following list
+    const users = await listUsers();
+    const peopleToFollow = users
+      .filter((user) => !following.includes(user.id))
+      .map((user) => ({
+        _id: user.id,
+        name: user.name,
+      }));
+
+    return res.json(peopleToFollow);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
 export default {
   create,
   list,
@@ -170,4 +262,7 @@ export default {
   update,
   remove,
   photo,
+  addFollowing,
+  removeFollowing,
+  findPeople,
 };
