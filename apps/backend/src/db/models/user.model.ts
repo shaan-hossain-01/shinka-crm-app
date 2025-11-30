@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import db from '../client';
 import { users, type User, type NewUser } from '../schema/users';
 import { encryptPassword, makeSalt, authenticate } from '../../auth/hash';
+import { upsertUserProfile, findUserProfileByUserId } from './userProfile.model';
 
 export class UserValidationError extends Error {
   public errors: Record<string, string>;
@@ -34,6 +35,9 @@ function validatePassword(password: string | undefined, isNew: boolean): Record<
 
 export interface UserWithPassword extends Omit<NewUser, 'hashed_password' | 'salt'> {
   password: string;
+  about?: string;
+  photo?: string | null;
+  photoContentType?: string | null;
 }
 
 export interface UserCredentials {
@@ -120,6 +124,15 @@ export async function updateUser(
     .set(updateData)
     .where(eq(users.id, id))
     .returning();
+
+  // Update or create user profile if about or photo data is provided
+  if (updates.about !== undefined || updates.photo !== undefined || updates.photoContentType !== undefined) {
+    await upsertUserProfile(id, {
+      about: updates.about,
+      photo: updates.photo,
+      photo_content_type: updates.photoContentType,
+    });
+  }
 
   return updatedUser;
 }
