@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const getJwt = () => {
+    if (typeof window === 'undefined') return null;
     const token = localStorage.getItem("token");
     if (token && user) {
       return { token, user };
